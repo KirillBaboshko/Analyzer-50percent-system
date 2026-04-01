@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-base;
+  }
+  
+  @media (min-width: 1024px) {
+    body {
+      @apply text-lg;
+    }
+  }
+}

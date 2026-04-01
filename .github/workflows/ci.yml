@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.26'
+    
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      working-directory: ./dota-analyzer
+      run: go mod download
+    
+    - name: Run go vet
+      working-directory: ./dota-analyzer
+      run: go vet ./...
+    
+    - name: Build
+      working-directory: ./dota-analyzer
+      run: go build -v -o analyzer cmd/main.go
+
+  frontend:
+    name: Frontend (React + TypeScript)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: dota-analyzer-frontend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./dota-analyzer-frontend
+      run: npm ci
+    
+    - name: Lint
+      working-directory: ./dota-analyzer-frontend
+      run: npm run lint
+    
+    - name: Build
+      working-directory: ./dota-analyzer-frontend
+      run: npm run build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: dota-analyzer-frontend/dist/
+        retention-days: 7
