@@ -1,6 +1,10 @@
 import type { MatchResult } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+// Определяем API URL в зависимости от окружения
+const API_BASE = import.meta.env.VITE_API_URL 
+  || (window.location.hostname.includes('onrender.com') 
+      ? 'https://dota-analyzer-backend.onrender.com/api' 
+      : 'http://localhost:8080/api');
 
 let activeController: AbortController | null = null;
 
