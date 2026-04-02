@@ -18,7 +18,6 @@ services:
   - type: web
     name: dota-analyzer-frontend
     env: static
-    region: frankfurt
     plan: free
     buildCommand: cd dota-analyzer-frontend && npm install && npm run build
     staticPublishPath: ./dota-analyzer-frontend/dist
