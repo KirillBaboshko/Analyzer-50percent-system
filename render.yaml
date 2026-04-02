@@ -14,10 +14,10 @@ services:
         sync: false
     healthCheckPath: /health
 
-  # Frontend Service (React)
+  # Frontend Static Site (React)
   - type: web
     name: dota-analyzer-frontend
-    env: node
+    env: static
     region: frankfurt
     plan: free
     buildCommand: cd dota-analyzer-frontend && npm install && npm run build
