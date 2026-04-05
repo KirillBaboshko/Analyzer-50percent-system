@@ -6,16 +6,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v5"
 )
 
 type APIHandler struct {
-	service *service.AnalysisService
+	service      *service.AnalysisService
+	defaultToken string
 }
 
 func NewAPIHandler(svc *service.AnalysisService) *APIHandler {
-	return &APIHandler{service: svc}
+	return &APIHandler{
+		service:      svc,
+		defaultToken: os.Getenv("STRATZ_API_TOKEN"),
+	}
 }
 
 type LoginRequest struct {
@@ -36,11 +41,20 @@ func (h *APIHandler) Login(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errJSON("invalid body"))
 	}
-	if req.SteamID == 0 || req.Token == "" {
-		return c.JSON(http.StatusBadRequest, errJSON("steamId and token required"))
+	if req.SteamID == 0 {
+		return c.JSON(http.StatusBadRequest, errJSON("steamId required"))
 	}
 
-	name, err := h.service.ValidateCredentials(req.Token, req.SteamID)
+	// Если токен не передан, используем дефолтный
+	token := req.Token
+	if token == "" {
+		token = h.defaultToken
+	}
+	if token == "" {
+		return c.JSON(http.StatusBadRequest, errJSON("token required or not configured"))
+	}
+
+	name, err := h.service.ValidateCredentials(token, req.SteamID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, errJSON(err.Error()))
 	}
@@ -59,9 +73,19 @@ func (h *APIHandler) Analyze(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errJSON("invalid body"))
 	}
-	if req.SteamID == 0 || req.Token == "" {
-		return c.JSON(http.StatusBadRequest, errJSON("steamId and token required"))
+	if req.SteamID == 0 {
+		return c.JSON(http.StatusBadRequest, errJSON("steamId required"))
 	}
+
+	// Если токен не передан, используем дефолтный
+	token := req.Token
+	if token == "" {
+		token = h.defaultToken
+	}
+	if token == "" {
+		return c.JSON(http.StatusBadRequest, errJSON("token required or not configured"))
+	}
+
 	if req.PlayerMatches <= 0 || req.ParticipantMatches <= 0 {
 		return c.JSON(http.StatusBadRequest, errJSON("matches must be > 0"))
 	}
@@ -104,7 +128,7 @@ func (h *APIHandler) Analyze(c *echo.Context) error {
 
 	cacheHits, err := h.service.AnalyzeStream(
 		ctx,
-		req.Token,
+		token,
 		req.SteamID,
 		req.PlayerMatches,
 		req.ParticipantMatches,

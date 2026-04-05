@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { apiLogin } from "../api";
-import { Gamepad2, AlertCircle } from "lucide-react";
+import { Gamepad2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Props {
   onAuthorized: (steamId: number, token: string, playerName: string) => void;
@@ -10,6 +10,7 @@ interface Props {
 export const LoginForm: React.FC<Props> = ({ onAuthorized, error }) => {
   const [steamId, setSteamId] = useState("");
   const [token, setToken] = useState("");
+  const [showCustomToken, setShowCustomToken] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -17,14 +18,19 @@ export const LoginForm: React.FC<Props> = ({ onAuthorized, error }) => {
     e.preventDefault();
     setLocalError(null);
     const id = Number(steamId);
-    if (!id || !token) {
-      setLocalError("Укажи Steam ID и STRATZ token");
+    if (!id) {
+      setLocalError("Укажи Steam ID");
       return;
     }
+    
+    // Если пользователь не ввел свой токен, используем пустую строку
+    // Backend будет использовать токен из переменной окружения
+    const finalToken = showCustomToken && token ? token : "";
+    
     setLoading(true);
     try {
-      const { playerName } = await apiLogin(id, token);
-      onAuthorized(id, token, playerName);
+      const { playerName } = await apiLogin(id, finalToken);
+      onAuthorized(id, finalToken, playerName);
     } catch (err: any) {
       setLocalError(err.message ?? "Ошибка авторизации");
     } finally {
@@ -68,30 +74,44 @@ export const LoginForm: React.FC<Props> = ({ onAuthorized, error }) => {
             />
           </div>
 
+          {/* Custom Token Toggle */}
           <div>
-            <label className="block text-sm font-medium text-dota-muted mb-2">
-              STRATZ API Token
-            </label>
-            <input
-              type="password"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Токен с stratz.com"
-              required
-              className="w-full px-4 py-3 rounded-lg bg-[#060d15] border-2 border-dota-border text-dota-text placeholder-dota-muted focus:outline-none focus:ring-2 focus:ring-dota-dire focus:border-dota-dire transition"
-            />
-            <p className="mt-2 text-xs text-dota-muted">
-              Получи токен на{" "}
-              <a
-                href="https://stratz.com/api"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-dota-dire hover:underline"
-              >
-                stratz.com/api
-              </a>
-            </p>
+            <button
+              type="button"
+              onClick={() => setShowCustomToken(!showCustomToken)}
+              className="flex items-center gap-2 text-sm text-dota-muted hover:text-dota-text transition"
+            >
+              {showCustomToken ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <span>Использовать свой STRATZ токен</span>
+            </button>
           </div>
+
+          {/* Custom Token Field */}
+          {showCustomToken && (
+            <div>
+              <label className="block text-sm font-medium text-dota-muted mb-2">
+                STRATZ API Token
+              </label>
+              <input
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Токен с stratz.com"
+                className="w-full px-4 py-3 rounded-lg bg-[#060d15] border-2 border-dota-border text-dota-text placeholder-dota-muted focus:outline-none focus:ring-2 focus:ring-dota-dire focus:border-dota-dire transition"
+              />
+              <p className="mt-2 text-xs text-dota-muted">
+                Получи токен на{" "}
+                <a
+                  href="https://stratz.com/api"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-dota-dire hover:underline"
+                >
+                  stratz.com/api
+                </a>
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"
