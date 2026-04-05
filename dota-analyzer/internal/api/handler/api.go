@@ -17,9 +17,15 @@ type APIHandler struct {
 }
 
 func NewAPIHandler(svc *service.AnalysisService) *APIHandler {
+	token := os.Getenv("STRATZ_API_TOKEN")
+	if token != "" {
+		fmt.Println("✓ Default STRATZ token loaded from environment")
+	} else {
+		fmt.Println("⚠ Warning: STRATZ_API_TOKEN not set in environment")
+	}
 	return &APIHandler{
 		service:      svc,
-		defaultToken: os.Getenv("STRATZ_API_TOKEN"),
+		defaultToken: token,
 	}
 }
 
@@ -47,17 +53,24 @@ func (h *APIHandler) Login(c *echo.Context) error {
 
 	// Если токен не передан, используем дефолтный
 	token := req.Token
+	fmt.Printf("Login request - SteamID: %d, Token provided: %v, Token length: %d\n",
+		req.SteamID, token != "", len(token))
+
 	if token == "" {
 		token = h.defaultToken
+		fmt.Printf("Using default token, length: %d\n", len(token))
 	}
+
 	if token == "" {
 		return c.JSON(http.StatusBadRequest, errJSON("token required or not configured"))
 	}
 
 	name, err := h.service.ValidateCredentials(token, req.SteamID)
 	if err != nil {
+		fmt.Printf("Validation failed: %v\n", err)
 		return c.JSON(http.StatusBadRequest, errJSON(err.Error()))
 	}
+	fmt.Printf("Login successful for: %s\n", name)
 	return c.JSON(http.StatusOK, LoginResponse{PlayerName: name})
 }
 
