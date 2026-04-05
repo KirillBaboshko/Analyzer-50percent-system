@@ -17,7 +17,7 @@ export function useAuth() {
     setPlayerName("");
   };
 
-  const isAuthenticated = Boolean(steamId && token);
+  const isAuthenticated = Boolean(steamId);
 
   return {
     steamId,
