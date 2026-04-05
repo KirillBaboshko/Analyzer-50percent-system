@@ -11,7 +11,7 @@ function App() {
   const { meta, matches, loading, done, error, startAnalysis, reset } = useAnalysis();
 
   const handleAnalyze = async (playerMatches: number, participantMatches: number) => {
-    if (!steamId || !token) return;
+    if (!steamId) return;
     await startAnalysis(steamId, token, playerMatches, participantMatches);
   };
 
