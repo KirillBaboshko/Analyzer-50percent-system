@@ -2,6 +2,7 @@ import { Gamepad2, RefreshCw, LogOut } from "lucide-react";
 import { LoginForm } from "./components/LoginForm";
 import { SettingsForm } from "./components/SettingsForm";
 import { ResultsView } from "./components/ResultsView";
+import { Footer } from "./components/Footer";
 import { useAuth } from "./hooks/useAuth";
 import { useAnalysis } from "./hooks/useAnalysis";
 import { Button } from "./components/ui/Button";
@@ -22,8 +23,11 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dota-dark via-[#0a1218] to-dota-dark flex items-center justify-center p-6">
-        <LoginForm onAuthorized={login} error={error} />
+      <div className="min-h-screen bg-gradient-to-br from-dota-dark via-[#0a1218] to-dota-dark flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <LoginForm onAuthorized={login} error={error} />
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -65,6 +69,8 @@ function App() {
           <ResultsView meta={meta} matches={matches} loading={loading} done={done} />
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }
