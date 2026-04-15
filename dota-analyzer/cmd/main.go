@@ -5,6 +5,7 @@ import (
 	"dota-analyzer/internal/service"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v5"
@@ -12,6 +13,16 @@ import (
 )
 
 func main() {
+	// Проверяем наличие токена при старте
+	token := os.Getenv("STRATZ_API_TOKEN")
+	if token == "" {
+		slog.Error("CRITICAL: STRATZ_API_TOKEN environment variable is not set!")
+		slog.Error("Please set STRATZ_API_TOKEN in Render dashboard -> Environment")
+		// Не останавливаем сервер, но предупреждаем
+	} else {
+		slog.Info("STRATZ_API_TOKEN loaded successfully", "length", len(token))
+	}
+
 	svc := service.NewAnalysisService()
 	h := handler.NewAPIHandler(svc)
 
