@@ -27,7 +27,7 @@ export const Footer = () => {
           </div>
 
           {/* Center - Version or description */}
-          <div className="text-xs text-dota-muted/70">
+          <div className="text-xs text-dota-muted/70 text-center">
             Аналитический инструмент для Dota 2
           </div>
 
